@@ -45,6 +45,11 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <args>
+                        <arg>-XXLanguage:+BreakContinueInInlineLambdas</arg>
+                    </args>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>

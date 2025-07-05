@@ -2,6 +2,7 @@ package com.neutron
 
 import org.apache.poi.sl.usermodel.PictureData
 import org.apache.poi.xslf.usermodel.XMLSlideShow
+import org.apache.poi.xslf.usermodel.XSLFPictureData
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Rectangle
@@ -10,92 +11,120 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import javax.imageio.ImageIO
-
-data class Data(val virtualId: Int, val image: String)
-
-val songs = mutableMapOf<Int, Data>()
+import kotlin.contracts.contract
 
 //"https://enekeskonyv.reformatus.hu/digitalis-reformatus-enekeskonyv/enek/3/"
-
-fun loadLUT() {
-    File("combi_ulti.csv").readLines().forEach {
-        val split = it.split(",")
-        songs.put(split[0].toInt(), Data(split[1].toInt(), split[2]))
-    }
-}
 
 val SLIDE_W = 960
 val SLIDE_H = 540
 val SIDE_PADDING = 50
 
-data class Song(val image: BufferedImage, val verses:List<Int>)
+data class Song(val id:Int, val pd: BufferedImage, val verses:List<Int>)
 
-fun parse(str:String): Array<Song> {
+fun bufimgToPicData(ppt: XMLSlideShow, bufimg: BufferedImage): XSLFPictureData {
+    val baos = ByteArrayOutputStream()
+    ImageIO.write(bufimg, "jpg", baos)
+    baos.close()
+    return ppt.addPicture(baos.toByteArray(), PictureData.PictureType.JPEG)
+}
+
+fun parse(str:String): ArrayList<Song> {
+    val ret = arrayListOf<Song>()
     for(line in str.split("\n")) {
-        if(line[0].isDigit()) {
+        if(line[0].isDigit()) { // song
+            //val id = line.takeWhile { it.isDigit() }.toInt()
 
+            val id = line.split("/")[0].toInt()
+            val bufimg = ImageIO.read(File("images/$id.jpg"))
+            println("${bufimg.width}x${bufimg.height}\tq=${bufimg.height.toFloat()/bufimg.width.toFloat()}")
+
+            val lyrfile = File("lyr/$id.txt")
+            val max = lyrfile.readLines().count { it.isBlank() }
+
+            val tmp = try {
+                    line.split("/")[1]
+                } catch (_: IndexOutOfBoundsException) {
+                    val foo = line.split("-")
+                    ret.add(Song(id, bufimg,(foo[0].toInt()..foo[1].toInt()).toList().dropWhile { it == 1 }))
+                    continue
+                }
+            val verses: List<Int> = if(tmp[0] == 'a') {
+                (1..max).toList()
+            } else {
+                tmp.split(",").map { it.toInt() }
+            }
+            ret.add(Song(id, bufimg, verses))
         }
     }
+    return ret
 }
 
 fun main() {
-    /*File("inp.txt").readText().let {
-        out -> songs.addAll(out.split("\n").map { it.toInt() })
-    }*/
-    println("Loading...")
-    loadLUT()
-
-    val todo = arrayOf(66, 205)
-    val images = arrayListOf<BufferedImage>()
-    for(s in todo) {
-        val image = ImageIO.read(File("images/${s}.jpg"))
-        println("${image.width}x${image.height}\tr=${image.height.toFloat()/image.width.toFloat()}")
-        images.add(image)
-    }
-
-    println("Creating presentation...")
     val ppt = XMLSlideShow()
     ppt.pageSize = Dimension(SLIDE_W, SLIDE_H)
 
     val slide1 = ppt.createSlide()
     slide1.background.fillColor = Color.BLACK
 
-    parse(File("instr.txt").readText()).forEach { (image, verses) ->
+    parse(File("instr.txt").readText()).forEach { (id:Int, image:BufferedImage, verses) ->
         imageSlide(ppt, image)
-        verseSlide(ppt, verses)
+        verseSlide(ppt, id, verses)
     }
 
-    for(image in images) {
-        imageSlide(ppt, image)
-    }
-
-    /*val textBox = slide1.createTextBox()
-    textBox.anchor = Rectangle(100, 100, 500, 100)
-
-    val paragraph = textBox.addNewTextParagraph()
-    val run = paragraph.addNewTextRun()
-    run.setText("Hello from Apache POI!")
-    run.fontSize = 32.0
-    run.setFontColor(Color.BLACK)*/
-
-
+    val endslide = ppt.createSlide()
+    endslide.background.fillColor = Color.BLACK
     ppt.write(FileOutputStream("test.pptx"))
 }
 
-fun verseSlide(ppt: XMLSlideShow, verses: List<Int>) {
+fun verseSlide(ppt: XMLSlideShow, songId:Int, verses: List<Int>) {
+    val HPAD = 5
+    val VPAD = 5
+
+    var slide = ppt.createSlide()
+    slide.background.fillColor = Color.BLACK
+
+    var textBox = slide.createTextBox()
+    textBox.anchor = Rectangle(HPAD, VPAD, SLIDE_W-2*HPAD, SLIDE_H-2*VPAD)
+    for((index, verse) in verses.withIndex()) {
+        val paragraph = textBox.addNewTextParagraph()
+        val run = paragraph.addNewTextRun()
+        val versetexts = arrayListOf<String>()
+        var curr = ""
+        File("lyr/$songId.txt").readLines().forEach {
+            if(it.isBlank()) {
+                versetexts.add(curr)
+                curr = ""
+                return@forEach
+            }
+            curr += it+"\n"
+        }
+        with(run) {
+            setText("$verse. ${versetexts[verse-1]}")
+            fontSize = 40.0
+            setFontColor(Color.WHITE)
+        }
+
+        if(index % 2 == 1 && index != verses.size - 1) {
+            slide = ppt.createSlide()
+            slide.background.fillColor = Color.BLACK
+            textBox = slide.createTextBox()
+            textBox.anchor = Rectangle(HPAD, VPAD, SLIDE_W-2*HPAD, SLIDE_H-2*VPAD)
+        }
+    }
+}
+
+fun scriptureSlide(ppt: XMLSlideShow, path: String) {
 
 }
 
 fun imageSlide(ppt: XMLSlideShow, image: BufferedImage) {
-    val imageBytes = ByteArrayOutputStream()
-    ImageIO.write(image, "jpg", imageBytes)
-    imageBytes.close()
-    val pictureData: ByteArray = imageBytes.toByteArray()
+    assert(image.width == 800)
+    val pd = bufimgToPicData(ppt, image)
 
     val slide = ppt.createSlide()
     slide.background.fillColor = Color.BLACK
-    val pd = ppt.addPicture(pictureData, PictureData.PictureType.JPEG)
     val chordPic = slide.createPicture(pd)
+
 
     if(image.height < 700) { // single slide
         println("single")
@@ -117,7 +146,7 @@ fun imageSlide(ppt: XMLSlideShow, image: BufferedImage) {
             (SLIDE_W - image.width) / 2, SLIDE_H-image.height,
             image.width, image.height
         )
-        if(2*image.height > SLIDE_H-15) {
+        if(image.height > SLIDE_H-10) {
             arrayOf(slide, overflowSlide).forEach {
                 it.createTextBox().run {
                     text = "BAD"
