@@ -25,14 +25,18 @@ sealed interface Data {
                 val tmp = try {
                     line.split("/")[1]
                 } catch (_: IndexOutOfBoundsException) {
-                    log.debug("'$line' is not slash separated")
-                    val foo = line.split("-")
-                    return Song(id, bufimg,(foo[0].toInt()..foo[1].toInt()).toList().dropWhile { it == 1 })
+                    log.fatal("'$line' is not slash separated")
+                    exitProcess(4)
                 }
                 val verses: List<Int> = if(tmp[0] == 'a') {
                     (1..max).toList()
                 } else {
-                    tmp.split(",").map { it.toInt() }
+                    try {
+                        tmp.split(",").map { it.toInt() }
+                    } catch (_: Exception) {
+                        val foo = tmp.split("-")
+                        (foo[0].toInt()..foo[1].toInt()).toList().dropWhile { it == 1 }
+                    }
                 }
                 return Song(id, bufimg, verses.dropWhile { it == 1 })
             } else { // passage

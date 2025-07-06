@@ -36,6 +36,8 @@ fun XMLSlideShow.verseSlide(songId:Int, verses: List<Int>) {
                 }
                 curr += it + "\n"
             }
+            if(curr.isNotBlank())
+                versetexts.add(curr)
         } catch (e: IOException) {
             log.error("Failed to open lyrics file with id: $songId. ${e.localizedMessage}. Aborting")
             e.printStackTrace()
