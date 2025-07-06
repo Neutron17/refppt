@@ -10,7 +10,21 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/combined.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/enek.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/enek_alt.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

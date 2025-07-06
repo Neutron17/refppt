@@ -54,3 +54,6 @@ nevek.csv
 main.py
 parse.c
 html
+test.pptx
+.gitignore
+logs
