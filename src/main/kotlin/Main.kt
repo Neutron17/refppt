@@ -1,17 +1,11 @@
 package com.neutron
 
-/*import org.crosswire.jsword.book.BookData
-import org.crosswire.jsword.book.Books
-import org.crosswire.jsword.book.OSISUtil
-import org.crosswire.jsword.bridge.BookInstaller
-import org.crosswire.jsword.passage.Verse*/
 import org.apache.logging.log4j.LogManager
 import org.apache.poi.sl.usermodel.PictureData
 import org.apache.poi.xslf.usermodel.XMLSlideShow
 import org.apache.poi.xslf.usermodel.XSLFPictureData
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -35,17 +29,6 @@ fun bufimgToPicData(ppt: XMLSlideShow, bufimg: BufferedImage): XSLFPictureData {
 }
 
 fun main(args: Array<String>) {
-    /*//BookInstaller.main(args)
-    val bible = Books.installed().getBook("HunRUF")
-    val keys = bible.getKey("2Jn 1:11-13")
-    val data = BookData(bible, keys)
-    println(OSISUtil.getCanonicalText(data.osisFragment))
-    println()
-    for(key in keys) {
-        val verse = key.to(Verse())
-        println(bible.getRawText(verse))
-    }
-    return*/
     log.info("Creating presentation with dimensions ${SLIDE_W}x$SLIDE_H")
     val ppt = XMLSlideShow()
     ppt.pageSize = Dimension(SLIDE_W, SLIDE_H)
