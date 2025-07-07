@@ -1,5 +1,9 @@
-package com.neutron
+package com.neutron.pptfx
 
+import javafx.application.Application
+import javafx.fxml.FXMLLoader
+import javafx.scene.Scene
+import javafx.stage.Stage
 import org.apache.logging.log4j.LogManager
 import org.apache.poi.sl.usermodel.PictureData
 import org.apache.poi.xslf.usermodel.XMLSlideShow
@@ -28,7 +32,28 @@ fun bufimgToPicData(ppt: XMLSlideShow, bufimg: BufferedImage): XSLFPictureData {
     return ppt.addPicture(baos.toByteArray(), PictureData.PictureType.JPEG)
 }
 
+class PPTApplication: Application() {
+    override fun start(stage: Stage) {
+        val loader = FXMLLoader(PPTApplication::class.java.getResource("view.fxml"))
+        val sc = Scene(loader.load(), 900.0, 600.0)
+        sc.stylesheets.add(javaClass.getResource("view.fxml")!!.toExternalForm())
+
+        with(stage) {
+            title = "ppt"
+            scene = sc
+            isResizable=false
+            centerOnScreen()
+            show()
+            toFront()
+        }
+    }
+}
+
 fun main(args: Array<String>) {
+    Application.launch(PPTApplication::class.java)
+
+
+    return
     log.info("Creating presentation with dimensions ${SLIDE_W}x$SLIDE_H")
     val ppt = XMLSlideShow()
     ppt.pageSize = Dimension(SLIDE_W, SLIDE_H)
@@ -39,7 +64,7 @@ fun main(args: Array<String>) {
 
     try {
         File("instr.txt").readText().split("\n").forEach {
-            val data = Data.fromString(it)
+            val data = Data.Companion.fromString(it)
             when (data) {
                 is Song -> {
                     log.debug("Creating slide(s) for ID=${data.id}")

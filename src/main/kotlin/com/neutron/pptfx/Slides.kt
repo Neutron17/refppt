@@ -1,4 +1,4 @@
-package com.neutron
+package com.neutron.pptfx
 
 import org.apache.poi.xslf.usermodel.XMLSlideShow
 import java.awt.Color
@@ -20,7 +20,7 @@ fun XMLSlideShow.verseSlide(songId:Int, verses: List<Int>) {
     slide.background.fillColor = Color.BLACK
 
     var textBox = slide.createTextBox()
-    textBox.anchor = Rectangle(HPAD, VPAD, SLIDE_W-2*HPAD, SLIDE_H-2*VPAD)
+    textBox.anchor = Rectangle(HPAD, VPAD, SLIDE_W -2*HPAD, SLIDE_H -2*VPAD)
     for((index, verse) in verses.withIndex()) {
         log.debug("index=$index verse=$verse")
         val paragraph = textBox.addNewTextParagraph()
@@ -54,7 +54,7 @@ fun XMLSlideShow.verseSlide(songId:Int, verses: List<Int>) {
             slide = this.createSlide()
             slide.background.fillColor = Color.BLACK
             textBox = slide.createTextBox()
-            textBox.anchor = Rectangle(HPAD, VPAD, SLIDE_W-2*HPAD, SLIDE_H-2*VPAD)
+            textBox.anchor = Rectangle(HPAD, VPAD, SLIDE_W -2*HPAD, SLIDE_H -2*VPAD)
         }
     }
 }
@@ -95,10 +95,10 @@ fun XMLSlideShow.imageSlide(image: BufferedImage) {
         overflowSlide.background.fillColor = Color.BLACK
         val p = overflowSlide.createPicture(pd)
         p.anchor = Rectangle(
-            (SLIDE_W - image.width) / 2, SLIDE_H-image.height,
+            (SLIDE_W - image.width) / 2, SLIDE_H -image.height,
             image.width, image.height
         )
-        if(image.height > 2*SLIDE_H-10) {
+        if(image.height > 2* SLIDE_H -10) {
             log.info("Image doesn't fit on 2 slides")
             arrayOf(slide, overflowSlide).forEach {
                 it.createTextBox().run {
