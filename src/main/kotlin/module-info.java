@@ -8,7 +8,7 @@ module com.neutron.pptfx {
     requires java.desktop;
     requires org.apache.poi.ooxml;
     requires org.apache.poi.poi;
-
+    //requires org.controlsfx.controls;
 
     opens com.neutron.pptfx to javafx.fxml;
     exports com.neutron.pptfx;

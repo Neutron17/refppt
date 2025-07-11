@@ -77,6 +77,12 @@
             <artifactId>kotlinx-serialization-core-jvm</artifactId>
             <version>1.9.0</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.controlsfx/controlsfx -->
+        <!--<dependency>
+            <groupId>org.controlsfx</groupId>
+            <artifactId>controlsfx</artifactId>
+            <version>11.2.2</version>
+        </dependency>-->
     </dependencies>
 
     <build>

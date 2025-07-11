@@ -24,6 +24,7 @@ const val SLIDE_W = 960
 const val SLIDE_H = 540
 
 val log = LogManager.getLogger()!!
+lateinit var primaryStage: Stage
 
 fun bufimgToPicData(ppt: XMLSlideShow, bufimg: BufferedImage): XSLFPictureData {
     val baos = ByteArrayOutputStream()
@@ -34,6 +35,7 @@ fun bufimgToPicData(ppt: XMLSlideShow, bufimg: BufferedImage): XSLFPictureData {
 
 class PPTApplication: Application() {
     override fun start(stage: Stage) {
+        primaryStage = stage
         val loader = FXMLLoader(PPTApplication::class.java.getResource("view.fxml"))
         val sc = Scene(loader.load(), 900.0, 600.0)
         sc.stylesheets.add(javaClass.getResource("view.fxml")!!.toExternalForm())
