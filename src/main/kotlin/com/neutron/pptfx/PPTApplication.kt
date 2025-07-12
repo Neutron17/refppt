@@ -15,6 +15,8 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.Locale
+import java.util.ResourceBundle
 import javax.imageio.ImageIO
 import kotlin.system.exitProcess
 
@@ -25,6 +27,7 @@ const val SLIDE_H = 540
 
 val log = LogManager.getLogger()!!
 lateinit var primaryStage: Stage
+val bundle: ResourceBundle = ResourceBundle.getBundle("ppt", Locale("hu"))//Locale.getDefault()
 
 fun bufimgToPicData(ppt: XMLSlideShow, bufimg: BufferedImage): XSLFPictureData {
     val baos = ByteArrayOutputStream()
@@ -36,7 +39,7 @@ fun bufimgToPicData(ppt: XMLSlideShow, bufimg: BufferedImage): XSLFPictureData {
 class PPTApplication: Application() {
     override fun start(stage: Stage) {
         primaryStage = stage
-        val loader = FXMLLoader(PPTApplication::class.java.getResource("view.fxml"))
+        val loader = FXMLLoader(PPTApplication::class.java.getResource("view.fxml"), bundle)
         val sc = Scene(loader.load(), 900.0, 600.0)
         sc.stylesheets.add(javaClass.getResource("view.fxml")!!.toExternalForm())
 

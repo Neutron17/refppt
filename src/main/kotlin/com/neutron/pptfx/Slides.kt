@@ -6,6 +6,7 @@ import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
+import javax.imageio.ImageIO
 import kotlin.system.exitProcess
 
 fun XMLSlideShow.verseSlide(songId:Int, verses: List<Int>) {
@@ -72,7 +73,7 @@ fun XMLSlideShow.scriptureSlide(path: String) {
     }
 }
 
-fun XMLSlideShow.imageSlide(image: BufferedImage) {
+fun XMLSlideShow.imageSlide(image: BufferedImage, singleSlide: Boolean) {
     log.debug("Creating image slide ${image.width}x${image.height}, q=${image.height.toFloat() / image.width.toFloat()}")
     assert(image.width == 800)
     val pd = bufimgToPicData(this, image)
@@ -82,7 +83,7 @@ fun XMLSlideShow.imageSlide(image: BufferedImage) {
     val chordPic = slide.createPicture(pd)
 
 
-    if(image.height < 700) { // single slide
+    if(singleSlide) { // single slide
         log.debug("single slide")
         chordPic.anchor = Rectangle(
             (SLIDE_W - image.width * SLIDE_H / image.height) / 2, 0,
@@ -110,3 +111,9 @@ fun XMLSlideShow.imageSlide(image: BufferedImage) {
         }
     }
 }
+fun XMLSlideShow.imageSlide(image: BufferedImage) =
+    this.imageSlide(image, image.height<700)
+fun XMLSlideShow.imageSlide(id: Int, single: Boolean) =
+    imageSlide(ImageIO.read(File("images/$id.jpg")), single)
+fun XMLSlideShow.imageSlide(id: Int) =
+    imageSlide(ImageIO.read(File("images/$id.jpg")))

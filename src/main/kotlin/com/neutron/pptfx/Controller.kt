@@ -14,6 +14,11 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.stage.Modality
 import javafx.stage.Stage
+import org.apache.poi.xslf.usermodel.XMLSlideShow
+import java.awt.Color
+import java.awt.Dimension
+import java.io.File
+import java.io.FileOutputStream
 import java.net.URL
 import java.util.*
 import kotlin.system.exitProcess
@@ -22,17 +27,19 @@ class Controller:Initializable {
 	sealed interface SlideInfo {
 		var inited: Boolean
 	}
-	data class SongInfo(var id:Int, var overflow: Boolean, override var inited: Boolean = true): SlideInfo
+	data class SongInfo(var id:Int, var overflow: Boolean, var verses:List<Int>, override var inited: Boolean = true): SlideInfo
 	data class BibleInfo(var passage: String, override var inited: Boolean = true): SlideInfo
 	class BlankInfo(override var inited: Boolean = true) : SlideInfo
 
 	enum class SlideType(val value: String) {
-		SONG("Ének"), BIBLE("Biblia"), BLANK("Üres")
+		SONG("1. ${bundle.getString("cb_song")}"),
+		BIBLE("2. ${bundle.getString("cb_bible")}"),
+		BLANK("3. ${bundle.getString("cb_empty")}")
 	}
 
 	private fun SlideType.toEmptySlideInfo(): SlideInfo {
 		return when(this) {
-			SlideType.SONG -> SongInfo(0,false, inited = false)
+			SlideType.SONG -> SongInfo(0,false, listOf(), inited = false)
 			SlideType.BIBLE -> BibleInfo("", inited = false)
 			SlideType.BLANK -> BlankInfo(true)
 		}
@@ -85,8 +92,6 @@ class Controller:Initializable {
 	fun onNew() {
 		infopane.on()
 		val selected = combobox.selectionModel.selectedIndex
-		//val lut = arrayOf("Ének","Biblia","Üres")
-		//listview.items.add(lut[selected])
 		listview.items.add("")
 
 		slideInfos.add(selected.toSlideType().toEmptySlideInfo())
@@ -97,6 +102,26 @@ class Controller:Initializable {
 		loadSlide(currentSlide)
 		//songTitleGroup.flip()
 	}
+	@FXML
+	fun onFinish() {
+		val ppt = XMLSlideShow()
+		ppt.pageSize = Dimension(SLIDE_W, SLIDE_H)
+		for(info in slideInfos) {
+			if(!info.inited) continue
+			when(info) {
+				is SongInfo -> {
+					ppt.imageSlide(info.id, !info.overflow)
+					ppt.verseSlide(info.id, info.verses)
+				}
+				is BibleInfo -> {
+
+				}
+				is BlankInfo ->
+					ppt.createSlide().background.fillColor = Color.BLACK
+			}
+		}
+		ppt.write(FileOutputStream("test.pptx"))
+	}
 
 	fun SlideInfo.setVisibilityEdit() {
 		infopane.on()
@@ -106,6 +131,7 @@ class Controller:Initializable {
 				sPane.on()
 				sTitle.off()
 				sEditButton.off()
+				sFirstlineLabel.off()
 				sSeparator.off()
 				sDoneButton.on()
 				sTitleInput.on()
@@ -149,6 +175,8 @@ class Controller:Initializable {
 			exitProcess(1)
 		}
 		info.id = SongEditController.id
+		info.overflow = SongEditController.doSplit
+		info.verses = SongEditController.verses.dropWhile { it == 1 }
 		SongEditController.stage.close()
 
 		loadSlide(currentSlide)
@@ -164,8 +192,8 @@ class Controller:Initializable {
 		SongEditController.id = (slideInfos[currentSlide] as SongInfo).id
 		SongEditController.stage = stage
 		SongEditController.saveCB = { saveCB() }
-		val loader = FXMLLoader(SongEditController::class.java.getResource("songedit.fxml"))
-		val sc = Scene(loader.load(), 400.0, 500.0)
+		val loader = FXMLLoader(SongEditController::class.java.getResource("songedit.fxml"), bundle)
+		val sc = Scene(loader.load(), 400.0, 600.0)
 		sc.stylesheets.add(javaClass.getResource("songedit.fxml")!!.toExternalForm())
 
 		with(stage) {
@@ -184,6 +212,27 @@ class Controller:Initializable {
 		loadSlide(currentSlide)
 		refreshListView()
 	}
+	@FXML
+	fun onFast() {
+
+	}
+	@FXML
+	fun onAbout() {
+		val stage = Stage()
+		val loader = FXMLLoader(SongEditController::class.java.getResource("about.fxml"), bundle)
+		val sc = Scene(loader.load(), 400.0, 600.0)
+		sc.stylesheets.add(javaClass.getResource("about.fxml")!!.toExternalForm())
+		with(stage) {
+			title = "About"
+			scene = sc
+			isResizable = false
+			initModality(Modality.WINDOW_MODAL)
+			initOwner(primaryStage)
+			centerOnScreen()
+			show()
+			toFront()
+		}
+	}
 
 	fun loadSlide(id: Int) {
 		val info = slideInfos[id]
@@ -193,13 +242,16 @@ class Controller:Initializable {
 				if(info.inited) {
 					info.setVisibility()
 					sTitle.text = "${info.id}. ${if (info.id <= 150) "Zsoltár" else "Dicséret"}"
+					println(File("lyr/${info.id}.txt").readLines()[0].take(25)+"...")
+					sFirstlineLabel.text = File("lyr/${info.id}.txt").readLines()[0].take(25)+"..."
 				} else {
 					info.setVisibilityEdit()
 					sTitleInput.text = ""
+					sFirstlineLabel.text = ""
 				}
 			}
 			is BibleInfo -> {
-
+				info.setVisibility()
 			}
 			is BlankInfo -> { info.setVisibility() }
 		}
@@ -208,23 +260,20 @@ class Controller:Initializable {
 		listview.selectionModel.select(currentSlide)
 		for ((index, info) in slideInfos.withIndex()) {
 			listview.items[index] = when (info) {
-				is SongInfo -> if(info.id==0) "új ének" else "${info.id}. ének"
-				is BibleInfo -> "biblia"
-				is BlankInfo -> "üres"
+				is SongInfo -> {
+					if (info.id == 0) bundle.getString("new_song")
+					else "${info.id}. ${bundle.getString("cb_song")}"
+				}
+				is BibleInfo -> bundle.getString("cb_bible")
+				is BlankInfo -> bundle.getString("cb_empty")
 			}
 		}
 	}
 
 	private fun Int.toSlideType() = arrayOf(SlideType.SONG, SlideType.BIBLE, SlideType.BLANK)[this]
-	private fun String.toSlideType() = when(this) {
-		"Ének"->SlideType.SONG
-		"Biblia"->SlideType.BIBLE
-		"Üres"->SlideType.BLANK
-		else -> throw IllegalArgumentException()
-	}
 
 	override fun initialize(location: URL?, res: ResourceBundle?) {
-		songTitleGroup = arrayOf(sTitle, sEditButton, sDoneButton, sTitleInput, sSeparator)
+		songTitleGroup = arrayOf(sTitle, sEditButton, sDoneButton, sTitleInput, sSeparator, sFirstlineLabel)
 		songGroup = arrayOf(sFirstlineLabel)
 		songGroup.forEach { it.off() }
 		songTitleGroup.forEach { it.off() }

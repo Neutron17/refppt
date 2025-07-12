@@ -77,6 +77,12 @@
             <artifactId>kotlinx-serialization-core-jvm</artifactId>
             <version>1.9.0</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core -->
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>1.10.2</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.controlsfx/controlsfx -->
         <!--<dependency>
             <groupId>org.controlsfx</groupId>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+
+<AnchorPane prefHeight="400.0" prefWidth="345.0" xmlns="http://javafx.com/javafx/24" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label layoutX="138.0" layoutY="14.0" text="About">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Label>
+      <Label layoutX="224.0" layoutY="368.0" text="Version: pre-alpha" />
+      <Label layoutX="26.0" layoutY="74.0" prefHeight="131.0" prefWidth="292.0" text="TODO" />
+      <Label layoutX="14.0" layoutY="51.0" text="Description">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <Hyperlink layoutX="40.0" layoutY="286.0" text="GitHub" />
+      <Label layoutX="165.0" layoutY="289.0" text="neutron17771@gmail.com" />
+      <Label layoutX="120.0" layoutY="257.0" text="Contact">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Label>
+      <Label layoutX="126.0" layoutY="322.0" text="SDG">
+         <font>
+            <Font name="System Bold" size="36.0" />
+         </font>
+      </Label>
+   </children>
+</AnchorPane>

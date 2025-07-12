@@ -3,6 +3,9 @@ package com.neutron.pptfx
 import javafx.event.EventHandler
 import javafx.fxml.FXML
 import javafx.fxml.Initializable
+import javafx.scene.control.CheckBox
+import javafx.scene.control.ListView
+import javafx.scene.control.SelectionMode
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
 import javafx.scene.image.Image
@@ -23,21 +26,39 @@ class SongEditController: Initializable {
     lateinit var verseArea: TextArea
     @FXML
     lateinit var imageView: ImageView
+    @FXML
+    lateinit var verseList: ListView<String>
+    @FXML
+    lateinit var splitbox: CheckBox
 
     @FXML
     fun onSearch() {
         id = field.text.toInt()
 
         imageView.image = Image(File("images/$id.jpg").inputStream())
-        verseArea.text = File("lyr/$id.txt").readText(Charsets.UTF_8)
+        if(imageView.image.height > 700)
+            splitbox.isSelected = true
+        val txt = File("lyr/$id.txt")
+        verseArea.text = txt.readText(Charsets.UTF_8)
+
+        verseList.items.clear()
+        val lines = txt.readLines()
+        var next = true
+        for(i in 0..(lines.count { it.isBlank() }-1)) {
+            verseList.items.add("${i+1}. ${lines.filter { if(next) { next=false; return@filter true } else { if(it.isBlank()) {next=true}; return@filter false } }[i].take(32)}")
+        }
+        verseList.selectionModel.selectAll()
     }
     @FXML
     fun onSave() {
         id = field.text.toInt()
+        verses = verseList.selectionModel.selectedItems.map { it.takeWhile { it.isDigit() }.toInt() }
+        doSplit = splitbox.isSelected
         saveCB()
     }
 
     override fun initialize(p0: URL?, p1: ResourceBundle?) {
+        verseList.selectionModel.selectionMode = SelectionMode.MULTIPLE
         field.onKeyReleased = EventHandler<KeyEvent> { event ->
             if(event.code == KeyCode.ENTER)
                 onSearch()
@@ -52,6 +73,8 @@ class SongEditController: Initializable {
         var id by Delegates.notNull<Int>()
         var stage by Delegates.notNull<Stage>()
         var saveCB by Delegates.notNull<()->Unit>()
+        var verses by Delegates.notNull<List<Int>>()
+        var doSplit by Delegates.notNull<Boolean>()
 	}
 }
 

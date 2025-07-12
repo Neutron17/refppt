@@ -34,6 +34,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
@@ -43,7 +44,9 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
@@ -55,14 +58,17 @@
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
-        <Menu mnemonicParsing="false" text="File">
+        <Menu mnemonicParsing="false" text="%mb_file">
           <items>
-            <MenuItem mnemonicParsing="false" text="New" />
+            <MenuItem mnemonicParsing="false" onAction="#onNew" text="%mb_new">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="N" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
             <MenuItem mnemonicParsing="false" text="Open…" />
             <Menu mnemonicParsing="false" text="Open Recent" />
             <SeparatorMenuItem mnemonicParsing="false" />
-            <MenuItem mnemonicParsing="false" text="Close" />
-            <MenuItem mnemonicParsing="false" text="Save" />
+            <MenuItem mnemonicParsing="false" onAction="#onFast" text="Fast Mode" />
+            <MenuItem fx:id="onFinish" mnemonicParsing="false" text="Save" />
             <MenuItem mnemonicParsing="false" text="Save As…" />
             <MenuItem mnemonicParsing="false" text="Revert" />
             <SeparatorMenuItem mnemonicParsing="false" />
@@ -71,7 +77,7 @@
             <MenuItem mnemonicParsing="false" text="Quit" />
           </items>
         </Menu>
-        <Menu mnemonicParsing="false" text="Edit">
+        <Menu mnemonicParsing="false" text="%mb_edit">
           <items>
             <MenuItem mnemonicParsing="false" text="Undo" />
             <MenuItem mnemonicParsing="false" text="Redo" />
@@ -87,7 +93,7 @@
         </Menu>
         <Menu mnemonicParsing="false" text="Help">
           <items>
-            <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
+            <MenuItem mnemonicParsing="false" onAction="#onAbout" text="About" />
           </items>
         </Menu>
       </menus>
@@ -96,14 +102,23 @@
       <items>
             <AnchorPane prefHeight="551.0" prefWidth="219.0">
                <children>
-                  <ListView fx:id="listview" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="64.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                  <Button mnemonicParsing="false" onAction="#onNew" prefHeight="38.0" prefWidth="172.0" text="New" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="75.0" AnchorPane.rightAnchor="10.0" />
-                  <ComboBox fx:id="combobox" layoutX="4.0" layoutY="504.0" prefHeight="26.0" prefWidth="51.0" AnchorPane.bottomAnchor="21.0" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="504.0" />
+                  <ListView fx:id="listview" prefHeight="436.0" prefWidth="222.0" AnchorPane.bottomAnchor="115.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Button layoutX="71.0" layoutY="444.0" mnemonicParsing="false" onAction="#onNew" prefHeight="38.0" prefWidth="172.0" text="%new" AnchorPane.bottomAnchor="69.0" AnchorPane.leftAnchor="75.0" AnchorPane.rightAnchor="10.0">
+                     <font>
+                        <Font size="14.0" />
+                     </font></Button>
+                  <ComboBox fx:id="combobox" layoutX="14.0" layoutY="450.0" prefHeight="26.0" prefWidth="51.0" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="450.0" />
+                  <Button layoutX="12.0" layoutY="489.0" mnemonicParsing="false" onAction="#onFinish" prefHeight="44.0" prefWidth="202.0" text="%finish" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Button>
+                  <Separator layoutX="11.0" layoutY="489.0" prefWidth="200.0" />
                </children>
             </AnchorPane>
         <AnchorPane fx:id="infopane">
                <children>
-                  <AnchorPane fx:id="sPane" layoutX="14.0" layoutY="14.0">
+                  <AnchorPane fx:id="sPane" layoutX="14.0" layoutY="14.0" prefHeight="537.0" prefWidth="631.0">
                      <children>
                         <Label fx:id="sTitle" alignment="CENTER" contentDisplay="CENTER" layoutX="86.0" prefHeight="83.0" prefWidth="545.0" text="90. Zsoltár" textAlignment="CENTER" textOverrun="WORD_ELLIPSIS" wrapText="true">
                            <font>
@@ -111,10 +126,34 @@
                            </font>
                         </Label>
                         <Separator fx:id="sSeparator" layoutX="144.0" layoutY="82.0" prefHeight="0.0" prefWidth="429.0" />
-                        <TextField fx:id="sTitleInput" layoutX="144.0" layoutY="17.0" prefHeight="51.0" prefWidth="402.0" promptText="Az ének száma:" />
-                        <Label fx:id="sFirstlineLabel" layoutX="295.0" layoutY="98.0" text="Label" />
-                        <Button fx:id="sDoneButton" layoutX="575.0" layoutY="17.0" mnemonicParsing="false" onAction="#onEditDone" prefHeight="51.0" prefWidth="56.0" text="Kész" />
-                        <Button fx:id="sEditButton" layoutY="18.0" mnemonicParsing="false" onAction="#onEdit" prefHeight="51.0" prefWidth="108.0" text="Szerkesztés" wrapText="true" />
+                        <TextField fx:id="sTitleInput" layoutX="144.0" layoutY="17.0" prefHeight="51.0" prefWidth="402.0" promptText="%s_id">
+                           <font>
+                              <Font size="18.0" />
+                           </font></TextField>
+                        <Label fx:id="sFirstlineLabel" layoutX="295.0" layoutY="98.0" text="Label">
+                           <font>
+                              <Font size="18.0" />
+                           </font></Label>
+                        <Button fx:id="sDoneButton" layoutX="575.0" layoutY="17.0" mnemonicParsing="false" onAction="#onEditDone" prefHeight="51.0" prefWidth="56.0" text="%done">
+                           <font>
+                              <Font size="14.0" />
+                           </font></Button>
+                        <Button fx:id="sEditButton" layoutY="18.0" mnemonicParsing="false" onAction="#onEdit" prefHeight="51.0" prefWidth="108.0" text="%edit" wrapText="true">
+                           <font>
+                              <Font size="14.0" />
+                           </font></Button>
+                        <TextArea editable="false" layoutX="3.0" layoutY="234.0" prefHeight="289.0" prefWidth="415.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                        <Label layoutX="14.0" layoutY="225.0" text="%verses">
+                           <font>
+                              <Font size="18.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="11.0" layoutY="134.0" text="%split">
+                           <font>
+                              <Font size="18.0" />
+                           </font>
+                        </Label>
+                        <CheckBox layoutX="102.0" layoutY="137.0" mnemonicParsing="false" />
                      </children>
                   </AnchorPane>
                </children></AnchorPane>
@@ -122,7 +161,7 @@
     </SplitPane>
     <HBox id="HBox" alignment="CENTER_LEFT" spacing="5.0" VBox.vgrow="NEVER">
       <children>
-        <Label maxHeight="1.7976931348623157E308" maxWidth="-1.0" text="Left status" HBox.hgrow="ALWAYS">
+        <Label maxHeight="1.7976931348623157E308" maxWidth="-1.0" text="Református PPT" HBox.hgrow="ALWAYS">
           <font>
             <Font size="11.0" fx:id="x3" />
           </font>
@@ -131,7 +170,7 @@
           </textFill>
         </Label>
         <Pane prefHeight="-1.0" prefWidth="-1.0" HBox.hgrow="ALWAYS" />
-        <Label font="$x3" maxWidth="-1.0" text="Right status" textFill="$x4" HBox.hgrow="NEVER" />
+        <Label font="$x3" maxWidth="-1.0" text="Version: pre-alpha" textFill="$x4" HBox.hgrow="NEVER" />
       </children>
       <padding>
         <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
