@@ -35,19 +35,35 @@ class SongEditController: Initializable {
     fun onSearch() {
         id = field.text.toInt()
 
-        imageView.image = Image(File("images/$id.jpg").inputStream())
-        if(imageView.image.height > 700)
-            splitbox.isSelected = true
-        val txt = File("lyr/$id.txt")
-        verseArea.text = txt.readText(Charsets.UTF_8)
-
+        val lines: List<String>
         verseList.items.clear()
-        val lines = txt.readLines()
+
+        try {
+            imageView.image = Image(File("images/$id.jpg").inputStream())
+            val txt = File("lyr/$id.txt")
+            verseArea.text = txt.readText(Charsets.UTF_8)
+            lines = txt.readLines()
+        } catch (_: Exception) {
+            WindowFactory(bundle.getString("no_song"))
+            return
+        }
+        if (imageView.image.doesSongOverflow())
+            splitbox.isSelected = true
         var next = true
-        for(i in 0..(lines.count { it.isBlank() }-1)) {
-            verseList.items.add("${i+1}. ${lines.filter { if(next) { next=false; return@filter true } else { if(it.isBlank()) {next=true}; return@filter false } }[i].take(32)}")
+        for (i in 0..(lines.count { it.isBlank() } - 1)) {
+            verseList.items.add(
+                "${i + 1}. ${
+                    lines.filter {
+                        if (next) {
+                            next = false; return@filter true
+                        } else {
+                            if (it.isBlank()) {
+                                next = true
+                            }; return@filter false
+                        }}[i].take(32)}")
         }
         verseList.selectionModel.selectAll()
+
     }
     @FXML
     fun onSave() {

@@ -1,0 +1,23 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="pptFX">
+    <output-path>$PROJECT_DIR$/out/artifacts/pptFX</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="com.neutron.pptfx.PPTApplication" />
+        <option name="description" value="" />
+        <option name="height" value="600" />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="nativeBundle" value="all" />
+        <option name="title" value="RefPPT" />
+        <option name="vendor" value="" />
+        <option name="version" value="pre-alpha" />
+        <option name="width" value="900" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="archive" name="pptFX.jar">
+        <element id="module-output" name="pptFX" />
+      </element>
+    </root>
+  </artifact>
+</component>

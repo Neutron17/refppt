@@ -3,7 +3,7 @@ import requests
 import json
 import os
 
-books = {
+"""books = {
     "GEN"	:"Genesis",
     "EXO"	:"Exodus",
     "LEV"	:"Leviticus",
@@ -70,8 +70,36 @@ books = {
     "3JO"	:"3 John",
     "JDE"	:"Jude",
     "REV"	:"Revelation"
+}"""
+"""books = {
+    #"JDG"	:"Judges",
+    "SOS"	:"Song of Solomon",
+    "EZE"	:"Ezekiel",
+    "JOE"	:"Joel",
+    "NAH"	:"Nahum",
+    "MAR"	:"Mark",
+    "JOH"	:"John",
+    "JAM"	:"James",
+    "1JO"	:"1 John",
+    "2JO"	:"2 John",
+    "3JO"	:"3 John",
+    "JDE"	:"Jude",
+}"""
+books = {
+    #"JDG"	:"Judges",
+    "SNG"	:"Song of Solomon",
+    "EZK"	:"Ezekiel",
+    "JOL"	:"Joel",
+    "NAM"	:"Nahum",
+    "MRK"	:"Mark",
+    "JHN"	:"John",
+    "JAS"	:"James",
+    "1JN"	:"1 John",
+    "2JN"	:"2 John",
+    "3JN"	:"3 John",
+    "JUD"	:"Jude",
 }
-"""
+
 for key in books.keys():
     os.mkdir(f"html/{key}")
     i = 1
@@ -93,33 +121,9 @@ for key in books.keys():
                 file.write(response.content)
                 file.close()
         i+=1
-"""
-for key in books.keys():
-    os.mkdir(f"njson/{key}")
-    i = 0
-    while True:
-        i+=1
-        # Load your HTML file (update path as needed)
-        try:
-            with open(f'json/{key}/{i}.json', 'r', encoding='utf-8') as infile:
-                verse_dict = json.load(infile)
-        except FileNotFoundError:
-            break
 
 
-        # Convert dictionary to list of objects
-        verses_list = [
-            {"number": num, "text": text}
-            for num, text in verse_dict.items()
-        ]
-
-        # Save the new list format
-        with open(f'njson/{key}/{i}.json', 'w', encoding='utf-8') as outfile:
-            json.dump(verses_list, outfile, ensure_ascii=False, indent=2)
-
-        print(f"Converted {len(verses_list)} verses to '{key}/{i}.json'")
-
-exit(0)
+#exit(0)
 
 for key in books.keys():
     os.mkdir(f"json/{key}")
@@ -159,3 +163,27 @@ for key in books.keys():
 
         print(f"Extracted {len(verses)} verses to '{key}/{i}.json'")
 
+for key in books.keys():
+    os.mkdir(f"njson/{key}")
+    i = 0
+    while True:
+        i+=1
+        # Load your HTML file (update path as needed)
+        try:
+            with open(f'json/{key}/{i}.json', 'r', encoding='utf-8') as infile:
+                verse_dict = json.load(infile)
+        except FileNotFoundError:
+            break
+
+
+        # Convert dictionary to list of objects
+        verses_list = [
+            {"number": num, "text": text}
+            for num, text in verse_dict.items()
+        ]
+
+        # Save the new list format
+        with open(f'njson/{key}/{i}.json', 'w', encoding='utf-8') as outfile:
+            json.dump(verses_list, outfile, ensure_ascii=False, indent=2)
+
+        print(f"Converted {len(verses_list)} verses to '{key}/{i}.json'")

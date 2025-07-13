@@ -3,24 +3,22 @@ package com.neutron.pptfx
 import javafx.collections.FXCollections
 import javafx.event.EventHandler
 import javafx.fxml.FXML
-import javafx.fxml.FXMLLoader
 import javafx.fxml.Initializable
-import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
-import javafx.stage.Modality
-import javafx.stage.Stage
 import org.apache.poi.xslf.usermodel.XMLSlideShow
 import java.awt.Color
 import java.awt.Dimension
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.net.URL
 import java.util.*
+import javax.imageio.ImageIO
 import kotlin.system.exitProcess
 
 class Controller:Initializable {
@@ -65,6 +63,10 @@ class Controller:Initializable {
 	lateinit var infopane: AnchorPane
 	@FXML
 	lateinit var sPane: Pane
+	@FXML
+	lateinit var sSplitbox: CheckBox
+	@FXML
+	lateinit var sVerseArea: TextArea
 
 	lateinit var songTitleGroup:Array<Region>
 	lateinit var songGroup:Array<Region>
@@ -94,6 +96,8 @@ class Controller:Initializable {
 		val selected = combobox.selectionModel.selectedIndex
 		listview.items.add("")
 
+		sSplitbox.isSelected=false
+
 		slideInfos.add(selected.toSlideType().toEmptySlideInfo())
 		assert(listview.items.size == slideInfos.size)
 		currentSlide = slideInfos.size-1
@@ -121,6 +125,8 @@ class Controller:Initializable {
 			}
 		}
 		ppt.write(FileOutputStream("test.pptx"))
+
+		WindowFactory(bundle.getString("write_succ"))
 	}
 
 	fun SlideInfo.setVisibilityEdit() {
@@ -157,11 +163,13 @@ class Controller:Initializable {
 			exitProcess(1)
 		}
 		info.id = try {
-			sTitleInput.text.toInt()
-		} catch (e: NumberFormatException) {
-			log.fatal("Not a number: ${sTitleInput.text}") // TODO
-			exitProcess(2)
+			sTitleInput.text.toInt().apply { this.isValidSongIdOrThrow { NumberFormatException() } }
+		} catch (_: NumberFormatException) {
+			WindowFactory(bundle.getString("no_song"))
+			return
 		}
+		if(info.id.doesSongOverflow())
+			info.overflow=true
 
 		info.inited = true
 		loadSlide(currentSlide)
@@ -177,35 +185,33 @@ class Controller:Initializable {
 		info.id = SongEditController.id
 		info.overflow = SongEditController.doSplit
 		info.verses = SongEditController.verses.dropWhile { it == 1 }
+		sSplitbox.isSelected = info.overflow
 		SongEditController.stage.close()
 
 		loadSlide(currentSlide)
 		refreshListView()
 	}
 	@FXML
+	fun onSplitBoxChanged() {
+		val info = slideInfos[currentSlide]
+		if(info !is SongInfo) {
+			log.fatal("Stored info is not for a song slide")
+			exitProcess(1)
+		}
+		info.overflow=sSplitbox.isSelected
+	}
+	@FXML
 	fun onEdit() {
-		if(slideInfos[currentSlide] !is SongInfo) {
+		val info = slideInfos[currentSlide]
+		if (info !is SongInfo) {
 			log.error("not song")
 			exitProcess(1)
 		}
-		val stage = Stage()
-		SongEditController.id = (slideInfos[currentSlide] as SongInfo).id
-		SongEditController.stage = stage
+		SongEditController.id = info.id
 		SongEditController.saveCB = { saveCB() }
-		val loader = FXMLLoader(SongEditController::class.java.getResource("songedit.fxml"), bundle)
-		val sc = Scene(loader.load(), 400.0, 600.0)
-		sc.stylesheets.add(javaClass.getResource("songedit.fxml")!!.toExternalForm())
+		val stage = WindowFactory("songedit.fxml", 400.0, 600.0, "Edit").stage
+		SongEditController.stage = stage
 
-		with(stage) {
-			title = "Edit"
-			scene = sc
-			isResizable = false
-			initModality(Modality.WINDOW_MODAL)
-			initOwner(primaryStage)
-			centerOnScreen()
-			show()
-			toFront()
-		}
 		stage.onCloseRequest = EventHandler {
 			saveCB()
 		}
@@ -214,24 +220,11 @@ class Controller:Initializable {
 	}
 	@FXML
 	fun onFast() {
-
+		WindowFactory("fast.fxml", 600.0, 400.0, "FastView")
 	}
 	@FXML
 	fun onAbout() {
-		val stage = Stage()
-		val loader = FXMLLoader(SongEditController::class.java.getResource("about.fxml"), bundle)
-		val sc = Scene(loader.load(), 400.0, 600.0)
-		sc.stylesheets.add(javaClass.getResource("about.fxml")!!.toExternalForm())
-		with(stage) {
-			title = "About"
-			scene = sc
-			isResizable = false
-			initModality(Modality.WINDOW_MODAL)
-			initOwner(primaryStage)
-			centerOnScreen()
-			show()
-			toFront()
-		}
+		WindowFactory("about.fxml", 400.0, 600.0, "About")
 	}
 
 	fun loadSlide(id: Int) {
@@ -242,8 +235,33 @@ class Controller:Initializable {
 				if(info.inited) {
 					info.setVisibility()
 					sTitle.text = "${info.id}. ${if (info.id <= 150) "Zsoltár" else "Dicséret"}"
-					println(File("lyr/${info.id}.txt").readLines()[0].take(25)+"...")
-					sFirstlineLabel.text = File("lyr/${info.id}.txt").readLines()[0].take(25)+"..."
+
+					val lines = File("lyr/${info.id}.txt").readLines()
+
+					println(lines[0].take(25)+"...")
+					sFirstlineLabel.text = lines[0].take(25)+"..."
+					sSplitbox.isSelected = info.overflow
+
+					val versetexts = arrayListOf<String>()
+					var curr = ""
+					try {
+						File("lyr/${info.id}.txt").readLines().forEach {
+							if (it.isBlank()) {
+								versetexts.add(curr)
+								curr = ""
+								return@forEach
+							}
+							curr += it + "\n"
+						}
+						if(curr.isNotBlank())
+							versetexts.add(curr)
+					} catch (e: IOException) {
+						log.error("Failed to open lyrics file with id: ${info.id}. ${e.localizedMessage}. Aborting")
+						e.printStackTrace()
+						exitProcess(2);
+					}
+
+					sVerseArea.text = lines.joinToString("")
 				} else {
 					info.setVisibilityEdit()
 					sTitleInput.text = ""

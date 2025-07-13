@@ -1,10 +1,14 @@
 package com.neutron.pptfx
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
 import org.apache.poi.xslf.usermodel.XMLSlideShow
 import java.awt.Color
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 import javax.imageio.ImageIO
 import kotlin.system.exitProcess
@@ -22,30 +26,11 @@ fun XMLSlideShow.verseSlide(songId:Int, verses: List<Int>) {
 
     var textBox = slide.createTextBox()
     textBox.anchor = Rectangle(HPAD, VPAD, SLIDE_W -2*HPAD, SLIDE_H -2*VPAD)
-    for((index, verse) in verses.withIndex()) {
-        log.debug("index=$index verse=$verse")
+    verses.readVersesIndexed(songId).forEachIndexed { index, it->
         val paragraph = textBox.addNewTextParagraph()
         val run = paragraph.addNewTextRun()
-        val versetexts = arrayListOf<String>()
-        var curr = ""
-        try {
-            File("lyr/$songId.txt").readLines().forEach {
-                if (it.isBlank()) {
-                    versetexts.add(curr)
-                    curr = ""
-                    return@forEach
-                }
-                curr += it + "\n"
-            }
-            if(curr.isNotBlank())
-                versetexts.add(curr)
-        } catch (e: IOException) {
-            log.error("Failed to open lyrics file with id: $songId. ${e.localizedMessage}. Aborting")
-            e.printStackTrace()
-            exitProcess(2);
-        }
         with(run) {
-            setText("$verse. ${versetexts[verse-1]}")
+            setText("${it.first}. ${it.second}")
             fontSize = 40.0
             setFontColor(Color.WHITE)
         }
@@ -60,14 +45,29 @@ fun XMLSlideShow.verseSlide(songId:Int, verses: List<Int>) {
     }
 }
 
+@Serializable
+data class Verse(val number: Int, val text: String)
+
 fun XMLSlideShow.scriptureSlide(path: String) {
     val slide = this.createSlide()
     slide.background.fillColor = Color.BLACK
 
+    val book = path.split(" ")[0].trim().uppercase()
+    val chapter = path.split(" ")[1].split(",")[0].trim().toInt()
+    val verses:List<Int> = try {
+        val sp = path.split(" ")[1].split(",")[1].trim().split("-")
+        (sp[0].toInt()..sp[1].toInt()).toList()
+    } catch(e: IndexOutOfBoundsException) {
+        listOf(path.split(" ")[1].split(",")[1].trim().toInt())
+    }
+    val vs = Json.decodeFromString<List<Verse>>(File("ruf/njson/$book/$chapter.json").readText())
+    val passage = vs.filter { it.number in verses }.joinToString("") { it.text } + " ($path)"
+
+
     slide.createTextBox().apply {
         anchor = Rectangle(0, 0, SLIDE_W, SLIDE_H)
     }.addNewTextParagraph().addNewTextRun().run {
-        setText(path)
+        setText(passage)
         setFontColor(Color.WHITE)
         fontSize = 64.0
     }
