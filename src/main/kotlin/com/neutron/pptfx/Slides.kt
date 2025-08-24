@@ -61,7 +61,7 @@ fun XMLSlideShow.scriptureSlide(path: String) {
         listOf(path.split(" ")[1].split(",")[1].trim().toInt())
     }
     val vs = Json.decodeFromString<List<Verse>>(File("ruf/njson/$book/$chapter.json").readText())
-    val passage = vs.filter { it.number in verses }.joinToString("") { it.text } + " ($path)"
+    val passage = vs.filter { it.number in verses }.joinToString(" ") { it.text } + " ($path)"
 
 
     slide.createTextBox().apply {
